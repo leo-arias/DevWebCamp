@@ -1,0 +1,88 @@
+@use 'base/variables' as v;
+@use 'base/mixins' as m;
+
+.tabla-wrapper {
+    overflow-x: auto;
+}
+
+.table {
+    width: auto;
+    min-width: 100%;
+    border-collapse: collapse;
+
+    @include m.tablet {
+        .tabla {
+            width: 100%;
+        }
+    }
+
+    &__thead {
+        background-color: v.$gris-oscuro;
+        color: v.$blanco;
+    }
+
+    &__th {
+        padding: 1rem;
+        text-align: left;
+    }
+
+    &__tr {
+        &:nth-of-type(even) {
+            background-color: darken(v.$gris-claro, 5%);
+        }
+    }
+
+    &__td {
+        padding: 1.5rem 1rem;
+
+        &--acciones {
+            @extend .table__td;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            align-items: center;
+
+            @include m.desktop {
+                flex-direction: row;
+                justify-content: flex-end;
+            }
+        }
+    }
+
+    &__accion {
+        all: unset;
+        text-transform: uppercase;
+        font-size: 1.4rem;
+        font-weight: v.$bold;
+
+        &--editar {
+            color: v.$azul;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            @include m.tablet {
+                flex-direction: row;
+                gap: .5rem;
+            }
+        }
+
+        &--eliminar {
+            color: v.$rojo;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            @include m.tablet {
+                flex-direction: row;
+                gap: .5rem;
+            }
+        }
+
+        &:hover {
+            cursor: pointer;
+        }
+    }
+
+
+}
