@@ -201,7 +201,7 @@ class RegistroController {
 
                 foreach($eventos as $evento_id) {
                     $evento = Evento::find($evento_id);
-                
+                }
             }
         }
 
