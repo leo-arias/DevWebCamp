@@ -6,12 +6,13 @@ use Model\Dia;
 use Model\Hora;
 use MVC\Router;
 use Model\Evento;
+use Model\Regalo;
 use Model\Paquete;
 use Model\Ponente;
 use Model\Usuario;
 use Model\Registro;
 use Model\Categoria;
-use Model\Regalo;
+use Model\EventosRegistros;
 
 class RegistroController {
     public static function crear(Router $router) {
@@ -25,6 +26,10 @@ class RegistroController {
 
         if(isset($registro) && $registro->paquete_id === '3') {
             header('Location: /boleto?id=' . urlencode($registro->token));
+        }
+
+        if(isset($registro) && $registro->paquete_id === '1') {
+            header('Location: /finalizar-registro/conferencias');
         }
 
         $router->render('registro/crear', [
@@ -137,6 +142,12 @@ class RegistroController {
             return;
         }
 
+        // Redireccionar a boleto virtual en caso de haber finalizado el registro
+        if(isset($registro->regalo_id)){
+            header('Location: /boleto?id=' . urlencode($registro->token));
+            return;
+        }
+
         // Agrupar los eventos por fecha
         $eventos = Evento::ordenar('hora_id', 'ASC');
         $eventos_formateados = [];
@@ -189,6 +200,8 @@ class RegistroController {
                 return;
             }
 
+            $eventos_array = [];
+
             // Validar la disponibilidad de los eventos seleccionados
             foreach($eventos as $evento_id) {
                 $evento = Evento::find($evento_id);
@@ -199,10 +212,37 @@ class RegistroController {
                     return;
                 }
 
-                foreach($eventos as $evento_id) {
-                    $evento = Evento::find($evento_id);
-                }
+                $eventos_array[] = $evento;
             }
+
+            foreach($eventos_array as $evento) {
+                $evento->disponibles -= 1;
+                $evento->guardar();
+
+                // Almacenar el registro en la base de datos
+                $datos = [
+                    'evento_id' => (int) $evento->id,
+                    'registro_id' => (int) $registro->id
+                ];
+
+                $registro_usuario = new EventosRegistros($datos);
+                $registro_usuario->guardar();
+            }
+
+            // Almacenar el Regalo
+            $registro->sincronizar(['regalo_id' => $_POST['regalo_id']]);
+            $resultado = $registro->guardar();
+
+            if($resultado) {
+                echo json_encode([
+                    'resultado' => $resultado,
+                    'token' => $registro->token
+                ]);
+            } else {
+                echo json_encode(['resultado' => false]);
+            }
+
+            return;
         }
 
         $router->render('registro/conferencias', [
